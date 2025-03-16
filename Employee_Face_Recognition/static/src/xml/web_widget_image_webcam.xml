@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="web.ImageFieldWebcam" t-inherit="web.ImageField" t-inherit-mode="extension" owl="1">
+        <xpath expr="//FileUploader" position="after">
+            <t t-if="props.name == 'face_image'">
+                <button t-on-click="_openRearCamera" class="btn btn-light border-0 rounded-circle m-1 p-1"
+                        data-tooltip="WebCam" aria-label="WebCam">
+                    <i class="fa fa-camera fa-fw"/>
+                </button>
+            </t>
+        </xpath>
+    </t>
+
+    <t t-name="Employee_Face_Recognition.WebcamDialog" owl="1">
+        <Dialog contentClass="'AttachmentWebcamDialog'" title="getTitle()" size="'xl'">
+            <p class="o_AttachmentWebcamDialog_mainText" t-esc="getBody()"/>
+
+            <div style="display: flex; justify-content: center; align-content: space-between;  align-items: center;flex-direction: column;">
+                <div>
+                    <select t-ref="selectCamera" class="form-select form-select-sm" t-on-change="(ev) => this.onChangeDevice(ev)">
+                        <option value="">Select camera</option>
+                    </select>
+                </div>
+                <div style="display: flex;">
+                    <video t-ref="video" width="50%" height="100%" autoplay="" playsinline=""/>
+                    <img width="50%" t-attf-src="{{state.snapshot}}"/>
+                </div>
+            </div>
+
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="_onWebcamSnapshot">
+                    <i class="fa fa-camera mr8"/>
+                    <t>Take Snapshot</t>
+                </button>
+                <button t-ref="saveButton" class="btn btn-primary" t-on-click="_onWebcamSave"
+                        t-att-disabled="!state.snapshot ? 'disabled' : ''">
+                    <i class="fa fa-save mr8"/>
+                    <t>Save and Close</t>
+                </button>
+                <button class="btn btn-secondary" t-on-click="_onClickCancel">
+                    <t>Cancel</t>
+                </button>
+            </t>
+        </Dialog>
+    </t>
+</templates>
