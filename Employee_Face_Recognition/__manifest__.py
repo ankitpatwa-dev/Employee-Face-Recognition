@@ -5,6 +5,7 @@
     'summary': 'Face Matching Attendance App',
     'description': """Face Matching Attendance App""",
     'author' : "Ankit",
+    'website':"http://devscodespace.com/",
     'depends': ['hr', 'hr_attendance','base'],
     'license': 'LGPL-3',
     'data': [
