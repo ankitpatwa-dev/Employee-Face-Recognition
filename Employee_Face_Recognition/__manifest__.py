@@ -1,13 +1,13 @@
 {
     'name': 'Face Recognition Attendance',
-    'version': '18.0',
+    'version': '17.0',
     'category': 'Human Resources',
     'summary': 'Face Matching Attendance App',
     'description': """Face Matching Attendance App""",
     'author' : "Ankit",
-    'website':"http://devscodespace.com/",
     'depends': ['hr', 'hr_attendance','base'],
     'license': 'LGPL-3',
+    'website':'devscodespace.com',
     'data': [
         'views/face_attendance.xml',
          'security/ir.model.access.csv',
@@ -18,6 +18,9 @@
             "Employee_Face_Recognition/static/src/js/image_field.js",
             "Employee_Face_Recognition/static/src/xml/web_widget_image_webcam.xml",
         ],
+    },
+    'external_dependencies': {
+        'python': ['face_recognition'],
     },
     'installable': True,
     'images': ['static/description/icon.jpeg'],
