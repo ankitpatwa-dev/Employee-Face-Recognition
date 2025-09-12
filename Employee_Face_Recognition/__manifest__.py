@@ -19,6 +19,9 @@
             "Employee_Face_Recognition/static/src/xml/web_widget_image_webcam.xml",
         ],
     },
+    'external_dependencies': {
+        'python': ['face_recognition'],
+    },
     'installable': True,
     'images': ['static/description/icon.jpeg'],
     'auto_install':False,
