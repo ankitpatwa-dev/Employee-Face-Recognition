@@ -2,8 +2,7 @@
 const { Component, useRef, useState, onMounted } = owl;
 import { Dialog } from "@web/core/dialog/dialog";
 import { session } from '@web/session';
-import { _t } from "@web/core/l10n/translation";
-import { sprintf } from "@web/core/utils/strings";
+
 
 class WebcamDialog extends Component {
     async setup() {
@@ -23,6 +22,7 @@ class WebcamDialog extends Component {
     }
 
     async initSelectCamera() {
+        // добавляем все доступные камеры в селекшен
         const devices = await navigator.mediaDevices.enumerateDevices();
         const videoDevices = devices.filter(device => device.kind === 'videoinput');
         videoDevices.map(videoDevice => {
@@ -35,7 +35,8 @@ class WebcamDialog extends Component {
     }
 
     onChangeDevice(e) {
-        const device = e.target.value;
+        // добавляем обработчик смены камеры
+        const device = $(e.target).val();
         this.stopVideo()
         this.startVideo(device)
     }
@@ -49,32 +50,14 @@ class WebcamDialog extends Component {
         return canvas.toDataURL('image/jpeg');
     }
 
-//    async handleStream(stream) {
-//        const def = $.Deferred();
-//
-//        if (stream && stream.getVideoTracks().length)
-//            this.selectCamera.el.value = stream.getVideoTracks()[0].getSettings().deviceId;
-//
-//        this.video.el.srcObject = stream;
-//
-//        this.video.el.addEventListener("canplay", () => {
-//            this.video.el.play();
-//        });
-//
-//        this.video.el.addEventListener("loadedmetadata", () => {
-//            this.streamStarted = true;
-//            def.resolve();
-//        }, false);
-//
-//        return def
-//    }
+    async handleStream(stream) {
+        const def = $.Deferred();
 
-async handleStream(stream) {
-    return new Promise((resolve, reject) => {
-        if (stream && stream.getVideoTracks().length) {
+        // устанавливаем выбранную камеру в селекшене
+        if (stream && stream.getVideoTracks().length)
             this.selectCamera.el.value = stream.getVideoTracks()[0].getSettings().deviceId;
-        }
 
+        // отображаем видео в диалоге
         this.video.el.srcObject = stream;
 
         this.video.el.addEventListener("canplay", () => {
@@ -83,21 +66,18 @@ async handleStream(stream) {
 
         this.video.el.addEventListener("loadedmetadata", () => {
             this.streamStarted = true;
-            resolve(); // Resolving the Promise when metadata is loaded
-        }, { once: true }); // Ensures the event listener is triggered only once
+            def.resolve();
+        }, false);
 
-        this.video.el.addEventListener("error", (error) => {
-            reject(error); // Reject if there's an error with the video
-        }, { once: true });
-    });
-}
-
+        return def
+    }
 
     async startVideo(device = null) {
         try {
             let config = {
                 width: { ideal: session.am_webcam_width || 1280 },
                 height: { ideal: session.am_webcam_height || 720 },
+                // facingMode: this.props.mode ? 'user' : 'environment',
             }
             if (device)
                 config.deviceId = { exact: device }
@@ -113,6 +93,7 @@ async handleStream(stream) {
     }
 
     stopVideo() {
+        // останавливае видео поток
         this.streamStarted = false;
 
         // если захват видео из предыдущего устройства был успешным, остановить его
@@ -126,8 +107,8 @@ async handleStream(stream) {
      * @returns {string}
      */
     getBody() {
-        return sprintf(
-            _t(`You can setting default photo size and quality in general settings`),
+        return _.str.sprintf(
+            this.env._t(`You can setting default photo size and quality in general settings`),
         );
     }
 
@@ -135,7 +116,7 @@ async handleStream(stream) {
      * @returns {string}
      */
     getTitle() {
-        return _t("Facematch Webcam");
+        return this.env._t("Attachments manager Webcam");
     }
 
     urltoFile(url, filename, mimeType) {

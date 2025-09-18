@@ -2,12 +2,10 @@
 <templates xml:space="preserve">
     <t t-name="web.ImageFieldWebcam" t-inherit="web.ImageField" t-inherit-mode="extension" owl="1">
         <xpath expr="//FileUploader" position="after">
-            <t t-if="props.name == 'face_image'">
-                <button t-on-click="_openRearCamera" class="btn btn-light border-0 rounded-circle m-1 p-1"
-                        data-tooltip="WebCam" aria-label="WebCam">
-                    <i class="fa fa-camera fa-fw"/>
-                </button>
-            </t>
+            <button t-on-click="_openRearCamera" class="btn btn-light border-0 rounded-circle m-1 p-1"
+                    data-tooltip="WebCam" aria-label="WebCam">
+                <i class="fa fa-camera fa-fw"/>
+            </button>
         </xpath>
     </t>
 
@@ -15,7 +13,7 @@
         <Dialog contentClass="'AttachmentWebcamDialog'" title="getTitle()" size="'xl'">
             <p class="o_AttachmentWebcamDialog_mainText" t-esc="getBody()"/>
 
-            <div style="display: flex; justify-content: center; align-content: space-between;  align-items: center;flex-direction: column;">
+             <div style="display: flex; justify-content: center; align-content: space-between;  align-items: center;flex-direction: column;">
                 <div>
                     <select t-ref="selectCamera" class="form-select form-select-sm" t-on-change="(ev) => this.onChangeDevice(ev)">
                         <option value="">Select camera</option>

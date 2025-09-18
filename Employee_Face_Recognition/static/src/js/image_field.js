@@ -1,15 +1,15 @@
 /** @odoo-module **/
 
-import { ImageField, imageField } from '@web/views/fields/image/image_field';
+import { ImageField } from '@web/views/fields/image/image_field';
 import { useService } from "@web/core/utils/hooks";
-import { patch } from "@web/core/utils/patch";
+import { patch } from 'web.utils';
 import WebcamDialog from '@Employee_Face_Recognition/js/webcam_dialog';
 
 
-patch(ImageField.prototype, {
+patch(ImageField.prototype, 'Employee_Face_Recognition', {
 
     setup() {
-        super.setup()
+        this._super(...arguments);
         this.dialogService = useService("dialog");
     },
 
@@ -21,7 +21,7 @@ patch(ImageField.prototype, {
     },
 
     async onWebcamCallback(base64) {
-        this.props.record.update({[this.props.name]:base64})
+        this.props.update(base64)
     }
 
 })

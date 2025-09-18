@@ -1,6 +1,6 @@
 {
     'name': 'Face Recognition Attendance',
-    'version': '17.0',
+    'version': '16.0',
     'category': 'Human Resources',
     'summary': 'Face Matching Attendance App',
     'description': """Face Matching Attendance App""",

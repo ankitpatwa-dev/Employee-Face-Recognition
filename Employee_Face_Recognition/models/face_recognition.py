@@ -19,6 +19,7 @@ class FaceMatch(models.Model):
                                      ('not_matched', 'Not Matched')],
                                     string="Match Status", default='pending')
 
+    @api.model
     def create(self, vals):
         """Generate face encoding upon creation."""
         match = self.match_image_with_employee(vals['face_image'],vals['employee_id'])
