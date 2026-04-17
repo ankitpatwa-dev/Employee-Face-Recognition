@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="email_template_advanced_sales_dashboard_weekly" model="mail.template">
+        <field name="name">Weekly Sales Dashboard Report</field>
+        <field name="model_id" ref="base.model_res_company"/>
+        <field name="subject">Weekly Sales Report - {{ object.name }}</field>
+        <field name="email_from">{{ (object.env.company.email or user.email_formatted) }}</field>
+        <field name="email_to"></field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Hello Management Team,<br/><br/>
+                    Please find attached the weekly sales dashboard metrics for <strong>{{ object.name }}</strong>.<br/><br/>
+                    Regards,<br/>
+                    Odoo Automated Analytics
+                </p>
+            </div>
+        </field>
+        <field name="report_template_ids" eval="[(4, ref('advanced_sales_dashboard.action_report_advanced_sales_dashboard'))]"/>
+        <field name="auto_delete" eval="True"/>
+    </record>
+</odoo>

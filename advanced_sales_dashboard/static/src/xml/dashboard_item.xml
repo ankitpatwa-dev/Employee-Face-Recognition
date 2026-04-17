@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<!-- =========================================================================
+     DashboardItem wrapper — card shell with controls
+     ========================================================================= -->
+<t t-name="advanced_sales_dashboard.Item" owl="1">
+    <div class="dash-card"
+         t-att-style="`--kpi-color:${kpiColor}`">
+
+        <!-- Card header -->
+        <div class="card-header">
+            <div class="card-title">
+                <!-- Drag handle — only rendered in edit mode; GridStack uses `.drag-handle` -->
+                <t t-if="props.editMode">
+                    <span class="drag-handle" title="Drag to reposition">
+                        <i class="fa fa-th"/>
+                    </span>
+                </t>
+                <i t-attf-class="card-icon fa {{ props.config.icon || 'fa-bar-chart' }}"
+                   t-att-style="`color:${kpiColor}`"/>
+                <span t-esc="props.config.name"/>
+                <!-- Drill breadcrumb -->
+                <t t-if="state.drillStack.length">
+                    <span style="font-weight:400;opacity:.6;margin:0 4px;">›</span>
+                    <t t-foreach="state.drillStack" t-as="crumb" t-key="crumb_index">
+                        <span t-esc="crumb.label"/>
+                        <span t-if="!crumb_last" style="margin:0 3px;">›</span>
+                    </t>
+                </t>
+            </div>
+
+            <div class="card-actions">
+                <!-- Drill-up -->
+                <t t-if="state.drillStack.length">
+                    <button class="card-action-btn" t-on-click="drillUp" title="Drill up">
+                        <i class="fa fa-arrow-up"/>
+                    </button>
+                </t>
+
+                <!-- AI insights (not for todo/note) -->
+                <t t-if="!['todo','note'].includes(props.config.item_type)">
+                    <button class="card-action-btn" t-on-click="loadAIInsights" title="AI Insights">
+                        <i class="fa fa-magic"/>
+                    </button>
+                </t>
+
+                <!-- List style toggle -->
+                <t t-if="props.config.item_type === 'list'">
+                    <button class="card-action-btn" t-on-click="toggleListStyle" title="Toggle list style">
+                        <i t-attf-class="fa {{ state.listStyle === 'card' ? 'fa-table' : 'fa-th-list' }}"/>
+                    </button>
+                </t>
+
+                <!-- Open full view -->
+                <t t-if="props.config.model_name">
+                    <button class="card-action-btn" t-on-click="openFullView" title="View all records">
+                        <i class="fa fa-external-link"/>
+                    </button>
+                </t>
+
+                <!-- Download dropdown -->
+                <t t-if="!['todo','note'].includes(props.config.item_type)">
+                    <button class="card-action-btn" t-on-click="downloadCSV"   title="Export CSV">   <i class="fa fa-file-text-o"/></button>
+                    <button class="card-action-btn" t-on-click="downloadExcel" title="Export Excel"> <i class="fa fa-file-excel-o"/></button>
+                    <button class="card-action-btn" t-on-click="downloadPDF"   title="Export PDF">   <i class="fa fa-file-pdf-o"/></button>
+                    <t t-if="props.config.item_type === 'chart'">
+                        <button class="card-action-btn" t-on-click="downloadPNG" title="Export PNG"><i class="fa fa-image"/></button>
+                    </t>
+                </t>
+
+                <!-- Edit (only edit mode) -->
+                <t t-if="props.editMode">
+                    <button class="card-action-btn" t-on-click="editItem" title="Configure tile">
+                        <i class="fa fa-cog"/>
+                    </button>
+                    <button class="card-action-btn" t-on-click="deleteItem" title="Remove tile"
+                            style="color:var(--dash-danger)">
+                        <i class="fa fa-trash"/>
+                    </button>
+                </t>
+            </div>
+        </div>
+
+        <!-- Card body -->
+        <div class="card-body">
+            <!-- Loading -->
+            <t t-if="state.loading">
+                <div class="dash-loading">
+                    <div class="spinner"/>
+                    <span>Loading…</span>
+                </div>
+            </t>
+
+            <!-- Error -->
+            <t t-elif="state.error">
+                <div class="dash-empty">
+                    <i class="fa fa-exclamation-circle" style="color:var(--dash-danger)"/>
+                    <span t-esc="state.error"/>
+                    <button class="dash-btn" t-on-click="fetchData" style="margin-top:8px;font-size:11px;">Retry</button>
+                </div>
+            </t>
+
+            <!-- AI Insights overlay -->
+            <t t-elif="state.showAIInsights">
+                <div style="height:100%;display:flex;flex-direction:column;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-size:12px;font-weight:700;color:var(--dash-primary)">
+                            <i class="fa fa-magic me-1"/> AI Insights
+                        </span>
+                        <button class="card-action-btn" t-on-click="() => this.state.showAIInsights = false">
+                            <i class="fa fa-times"/>
+                        </button>
+                    </div>
+                    <t t-if="state.aiLoading">
+                        <div class="dash-loading"><div class="spinner"/><span>Analysing…</span></div>
+                    </t>
+                    <t t-else="">
+                        <div style="font-size:13px;line-height:1.7;white-space:pre-wrap;overflow-y:auto;flex:1;"
+                             t-esc="state.aiText"/>
+                    </t>
+                </div>
+            </t>
+
+            <!-- KPI Card -->
+            <t t-elif="props.config.item_type === 'kpi'">
+                <t t-if="state.data">
+                    <div class="kpi-value" t-esc="formatDisplay(state.data.value || 0)"/>
+                    <t t-if="props.config.compare_period">
+                        <div t-attf-class="kpi-growth {{ growthClass }}">
+                            <i t-attf-class="fa {{ state.data.growth >= 0 ? 'fa-arrow-up' : 'fa-arrow-down' }}"/>
+                            <span t-esc="Math.abs(state.data.growth || 0).toFixed(2)"/>% vs previous
+                        </div>
+                    </t>
+                    <t t-if="props.config.has_target">
+                        <div class="kpi-target-bar">
+                            <div class="target-label">
+                                <span t-esc="props.config.target_label || 'Target'"/>
+                                <span t-esc="formatDisplay(props.config.target_value)"/>
+                            </div>
+                            <div class="target-track">
+                                <div class="target-fill"
+                                     t-att-style="`width:${state.data?.target_progress || 0}%`"/>
+                            </div>
+                            <div style="text-align:right;font-size:11px;margin-top:2px;color:var(--dash-muted)">
+                                <t t-esc="state.data?.target_progress || 0"/>%
+                            </div>
+                        </div>
+                    </t>
+                </t>
+                <t t-else=""><div class="dash-empty"><i class="fa fa-inbox"/><span>No data</span></div></t>
+            </t>
+
+            <!-- Gauge / Progress Ring -->
+            <t t-elif="props.config.item_type === 'gauge'">
+                <t t-if="state.data">
+                    <div class="gauge-wrap">
+                        <svg class="gauge-svg" width="140" height="80" viewBox="0 0 140 80">
+                            <!-- Track -->
+                            <path d="M 15 75 A 55 55 0 0 1 125 75"
+                                  fill="none" stroke="var(--dash-border)" stroke-width="12"
+                                  stroke-linecap="round"/>
+                            <!-- Fill -->
+                            <path d="M 15 75 A 55 55 0 0 1 125 75"
+                                  fill="none"
+                                  t-att-stroke="kpiColor"
+                                  stroke-width="12"
+                                  stroke-linecap="round"
+                                  stroke-dasharray="172.78"
+                                  t-att-stroke-dashoffset="172.78 * (1 - (state.data?.target_progress || 0) / 100)"/>
+                        </svg>
+                        <div class="gauge-value" t-esc="formatDisplay(state.data.value || 0)"/>
+                        <div class="gauge-label">
+                            <span t-esc="state.data?.target_progress || 0"/>% of
+                            <span t-esc="formatDisplay(state.data.target || 0)"/>
+                        </div>
+                    </div>
+                </t>
+                <t t-else=""><div class="dash-empty"><i class="fa fa-circle-o"/></div></t>
+            </t>
+
+            <!-- Chart -->
+            <t t-elif="props.config.item_type === 'chart'">
+                <div class="chart-wrap">
+                    <canvas t-ref="chartCanvas" style="max-height:100%;"/>
+                </div>
+            </t>
+
+            <!-- List (compact table or card) -->
+            <t t-elif="props.config.item_type === 'list'">
+                <t t-if="state.data and state.data.records and state.data.records.length">
+                    <!-- Compact table -->
+                    <t t-if="state.listStyle === 'compact'">
+                        <div style="overflow-x:auto;height:100%;">
+                            <table class="dash-list-table">
+                                <thead>
+                                    <tr>
+                                        <t t-foreach="state.data.fields || []" t-as="fld" t-key="fld">
+                                            <th t-esc="fld"/>
+                                        </t>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="state.data.records" t-as="rec" t-key="rec_index">
+                                        <tr>
+                                            <t t-foreach="state.data.fields || []" t-as="fld" t-key="fld">
+                                                <td t-esc="rec[fld] !== undefined ? rec[fld] : ''"/>
+                                            </t>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </t>
+                    <!-- Card list -->
+                    <t t-else="">
+                        <div class="dash-card-list" style="overflow-y:auto;height:100%;">
+                            <t t-foreach="state.data.records" t-as="rec" t-key="rec_index">
+                                <div class="card-list-item">
+                                    <div class="cli-idx" t-esc="rec_index + 1"/>
+                                    <div style="flex:1;min-width:0;">
+                                        <t t-foreach="state.data.fields || []" t-as="fld" t-key="fld">
+                                            <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                                <span style="color:var(--dash-muted);font-size:10px;"
+                                                      t-esc="fld + ': '"/>
+                                                <span t-esc="rec[fld] !== undefined ? rec[fld] : ''"/>
+                                            </div>
+                                        </t>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </t>
+                </t>
+                <t t-else="">
+                    <div class="dash-empty">
+                        <i class="fa fa-list"/>
+                        <span>No records found</span>
+                    </div>
+                </t>
+            </t>
+
+            <!-- To-Do -->
+            <t t-elif="props.config.item_type === 'todo'">
+                <div style="overflow-y:auto;height:100%;">
+                    <ul class="todo-list">
+                        <t t-foreach="todoItemsState" t-as="todo" t-key="todo_index">
+                            <li t-attf-class="todo-item {{ todo.done ? 'done' : '' }}">
+                                <input type="checkbox" t-att-checked="todo.done"
+                                       t-on-change="() => this.toggleTodo(todo_index)"/>
+                                <span t-esc="todo.text"/>
+                                <button class="card-action-btn ms-auto" style="opacity:.4"
+                                        t-on-click="() => this.deleteTodo(todo_index)">
+                                    <i class="fa fa-times"/>
+                                </button>
+                            </li>
+                        </t>
+                        <li class="todo-add">
+                            <input type="text" placeholder="Add a task…" t-on-keydown="(e) => e.key === 'Enter' &amp;&amp; this.addTodo(e)"/>
+                            <button t-on-click="(e) => this.addTodo(e)">+</button>
+                        </li>
+                    </ul>
+                </div>
+            </t>
+
+            <!-- Note -->
+            <t t-elif="props.config.item_type === 'note'">
+                <textarea class="note-body"
+                          t-att-style="`background:${props.config.note_bg_color || '#fff9c4'}`"
+                          t-att-value="state.data?.note_content || props.config.note_content || ''"
+                          placeholder="Write a note…"
+                          t-on-change="saveNote"/>
+            </t>
+
+        </div>
+
+        <!-- Card footer (shows unit / currency hint) -->
+        <t t-if="props.config.unit_type === 'monetary' and props.config.currency_name">
+            <div class="card-footer">
+                Currency: <b t-esc="props.config.currency_name"/>
+            </div>
+        </t>
+
+    </div>
+</t>
+
+</templates>

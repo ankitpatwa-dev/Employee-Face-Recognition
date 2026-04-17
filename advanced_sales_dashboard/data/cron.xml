@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_advanced_sales_dashboard_weekly" model="ir.cron">
+        <field name="name">Advanced Sales Dashboard: Weekly Report Email</field>
+        <field name="model_id" ref="base.model_res_company"/>
+        <field name="state">code</field>
+        <field name="code">env['advanced.sales.dashboard']._cron_send_weekly_report()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">weeks</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<!-- =========================================================================
+     AI Dialog Template
+     ========================================================================= -->
+<t t-name="advanced_sales_dashboard.AIDialog" owl="1">
+    <t t-if="props.open">
+        <div class="ai-modal-overlay" t-on-click.self="close">
+            <div class="ai-modal">
+
+                <div class="ai-modal-header">
+                    <div class="ai-modal-icon"><i class="fa fa-magic"/></div>
+                    <div>
+                        <h3 t-esc="modeLabel"/>
+                        <p t-esc="modeSubtitle"/>
+                    </div>
+                    <button t-on-click="close"><i class="fa fa-times"/></button>
+                </div>
+
+                <div class="ai-modal-body">
+                    <!-- Keywords (item mode only) -->
+                    <t t-if="props.mode === 'item'">
+                        <div style="margin-bottom:10px;">
+                            <label style="font-size:11px;font-weight:700;color:var(--dash-muted);text-transform:uppercase;letter-spacing:.6px;">
+                                Keywords (optional)
+                            </label>
+                            <input class="ai-prompt-input" style="min-height:36px;"
+                                   type="text"
+                                   t-att-value="state.keywords"
+                                   t-on-input="(e) => this.state.keywords = e.target.value"
+                                   placeholder="revenue, monthly, salesperson"/>
+                        </div>
+                    </t>
+
+                    <!-- Main prompt -->
+                    <label style="font-size:11px;font-weight:700;color:var(--dash-muted);text-transform:uppercase;letter-spacing:.6px;">
+                        Describe what you want
+                    </label>
+                    <textarea class="ai-prompt-input"
+                              t-att-value="state.prompt"
+                              t-on-input="(e) => this.state.prompt = e.target.value"
+                              t-att-placeholder="promptPlaceholder"/>
+
+                    <!-- Result area -->
+                    <t t-if="state.loading or state.result or state.error">
+                        <div class="ai-result">
+                            <t t-if="state.loading">
+                                <div class="ai-loading-dots">
+                                    <span/><span/><span/>
+                                    <span style="margin-left:6px;color:var(--dash-muted);font-size:12px;">AI is thinking…</span>
+                                </div>
+                            </t>
+                            <t t-elif="state.error">
+                                <div style="color:var(--dash-danger);">
+                                    <i class="fa fa-exclamation-circle me-2"/>
+                                    <t t-esc="state.error"/>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <t t-esc="state.result"/>
+                            </t>
+                        </div>
+                    </t>
+                </div>
+
+                <div class="ai-modal-footer">
+                    <button class="btn-ai-cancel" t-on-click="close">Cancel</button>
+                    <button class="btn-ai-send" t-on-click="sendPrompt"
+                            t-att-disabled="state.loading or !state.prompt.trim()">
+                        <t t-if="state.loading">
+                            <i class="fa fa-spinner fa-spin"/> Generating…
+                        </t>
+                        <t t-else="">
+                            <i class="fa fa-magic"/> Generate
+                        </t>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </t>
+</t>
+
+</templates>

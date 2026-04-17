@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- =============================================================
+             Predefined Dashboard 1: Sales Overview
+             ============================================================= -->
+        <record id="board_predefined_sales_overview" model="dashboard.board">
+            <field name="name">Sales Overview</field>
+            <field name="is_predefined">True</field>
+            <field name="theme">default</field>
+            <field name="sequence">1</field>
+            <field name="description">High-level revenue, orders, and conversion KPIs.</field>
+            <field name="user_id" ref="base.user_admin"/>
+        </record>
+
+        <!-- Revenue KPI -->
+        <record id="item_sales_overview_revenue" model="dashboard.item">
+            <field name="board_id" ref="board_predefined_sales_overview"/>
+            <field name="name">Total Revenue</field>
+            <field name="item_type">kpi</field>
+            <field name="model_name">sale.order</field>
+            <field name="domain">[('state','in',['sale','done']),('company_id','in',[%MYCOMPANY])]</field>
+            <field name="filter_date_field">date_order</field>
+            <field name="date_filter">month</field>
+            <field name="measure_field">amount_untaxed</field>
+            <field name="measure_operator">sum</field>
+            <field name="color_theme">primary</field>
+            <field name="icon">fa-dollar</field>
+            <field name="unit_type">monetary</field>
+            <field name="has_target">True</field>
+            <field name="target_value">100000</field>
+            <field name="compare_period">True</field>
+            <field name="number_system">abbreviated</field>
+            <field name="grid_x">0</field><field name="grid_y">0</field>
+            <field name="grid_w">3</field><field name="grid_h">2</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <!-- Orders KPI -->
+        <record id="item_sales_overview_orders" model="dashboard.item">
+            <field name="board_id" ref="board_predefined_sales_overview"/>
+            <field name="name">Total Orders</field>
+            <field name="item_type">kpi</field>
+            <field name="model_name">sale.order</field>
+            <field name="domain">[('state','in',['sale','done'])]</field>
+            <field name="filter_date_field">date_order</field>
+            <field name="date_filter">month</field>
+            <field name="measure_field">id</field>
+            <field name="measure_operator">count</field>
+            <field name="color_theme">info</field>
+            <field name="icon">fa-shopping-cart</field>
+            <field name="unit_type">number</field>
+            <field name="compare_period">True</field>
+            <field name="grid_x">3</field><field name="grid_y">0</field>
+            <field name="grid_w">3</field><field name="grid_h">2</field>
+            <field name="sequence">2</field>
+        </record>
+
+        <!-- AOV KPI -->
+        <record id="item_sales_overview_aov" model="dashboard.item">
+            <field name="board_id" ref="board_predefined_sales_overview"/>
+            <field name="name">Average Order Value</field>
+            <field name="item_type">kpi</field>
+            <field name="model_name">sale.order</field>
+            <field name="domain">[('state','in',['sale','done'])]</field>
+            <field name="filter_date_field">date_order</field>
+            <field name="date_filter">month</field>
+            <field name="measure_field">amount_untaxed</field>
+            <field name="measure_operator">avg</field>
+            <field name="color_theme">success</field>
+            <field name="icon">fa-line-chart</field>
+            <field name="unit_type">monetary</field>
+            <field name="grid_x">6</field><field name="grid_y">0</field>
+            <field name="grid_w">3</field><field name="grid_h">2</field>
+            <field name="sequence">3</field>
+        </record>
+
+        <!-- Revenue Target Gauge -->
+        <record id="item_sales_overview_gauge" model="dashboard.item">
+            <field name="board_id" ref="board_predefined_sales_overview"/>
+            <field name="name">Monthly Target Progress</field>
+            <field name="item_type">gauge</field>
+            <field name="model_name">sale.order</field>
+            <field name="domain">[('state','in',['sale','done'])]</field>
+            <field name="filter_date_field">date_order</field>
+            <field name="date_filter">month</field>
+            <field name="measure_field">amount_untaxed</field>
+            <field name="measure_operator">sum</field>
+            <field name="has_target">True</field>
+            <field name="target_value">100000</field>
+            <field name="target_label">Monthly Target</field>
+            <field name="color_theme">warning</field>
+            <field name="icon">fa-bullseye</field>
+            <field name="grid_x">9</field><field name="grid_y">0</field>
+            <field name="grid_w">3</field><field name="grid_h">2</field>
+            <field name="sequence">4</field>
+        </record>
+
+        <!-- Revenue Trend Chart -->
+        <record id="item_sales_overview_trend" model="dashboard.item">
+            <field name="board_id" ref="board_predefined_sales_overview"/>
+            <field name="name">Revenue Trend</field>
+            <field name="item_type">chart</field>
+            <field name="model_name">sale.order</field>
+            <field name="domain">[('state','in',['sale','done'])]</field>
+            <field name="filter_date_field">date_order</field>
+            <field name="date_filter">year</field>
+            <field name="measure_field">amount_untaxed</field>
+            <field name="measure_operator">sum</field>
+            <field name="group_by_field">date_order:month</field>
+            <field name="chart_type">line</field>
+            <field name="chart_color_palette">cool</field>
+            <field name="smooth_line">True</field>
+            <field name="fill_area">True</field>
+            <field name="grid_x">0</field><field name="grid_y">2</field>
+            <field name="grid_w">8</field><field name="grid_h">4</field>
+            <field name="sequence">5</field>
+        </record>
+
+        <!-- Sales by Product Chart -->
+        <record id="item_sales_overview_product" model="dashboard.item">
+            <field name="board_id" ref="board_predefined_sales_overview"/>
+            <field name="name">Top Products</field>
+            <field name="item_type">chart</field>
+            <field name="model_name">sale.order.line</field>
+            <field name="domain">[]</field>
+            <field name="measure_field">price_subtotal</field>
+            <field name="measure_operator">sum</field>
+            <field name="group_by_field">product_id</field>
+            <field name="chart_type">doughnut</field>
+            <field name="chart_color_palette">pastel</field>
+            <field name="record_limit">8</field>
+            <field name="grid_x">8</field><field name="grid_y">2</field>
+            <field name="grid_w">4</field><field name="grid_h">4</field>
+            <field name="sequence">6</field>
+        </record>
+
+        <!-- Recent Orders List -->
+        <record id="item_sales_overview_orders_list" model="dashboard.item">
+            <field name="board_id" ref="board_predefined_sales_overview"/>
+            <field name="name">Recent Orders</field>
+            <field name="item_type">list</field>
+            <field name="model_name">sale.order</field>
+            <field name="domain">[('state','in',['sale','done'])]</field>
+            <field name="filter_date_field">date_order</field>
+            <field name="date_filter">month</field>
+            <field name="list_fields">["name","partner_id","amount_total","state","date_order"]</field>
+            <field name="list_style">compact</field>
+            <field name="sort_by">date_order</field>
+            <field name="sort_order">desc</field>
+            <field name="record_limit">15</field>
+            <field name="grid_x">0</field><field name="grid_y">6</field>
+            <field name="grid_w">12</field><field name="grid_h">4</field>
+            <field name="sequence">7</field>
+        </record>
+
+        <!-- =============================================================
+             Predefined Dashboard 2: Team Performance
+             ============================================================= -->
+        <record id="board_predefined_team_performance" model="dashboard.board">
+            <field name="name">Team Performance</field>
+            <field name="is_predefined">True</field>
+            <field name="theme">ocean</field>
+            <field name="sequence">2</field>
+            <field name="description">Salesperson and team-level performance metrics.</field>
+            <field name="user_id" ref="base.user_admin"/>
+        </record>
+
+        <record id="item_team_my_revenue" model="dashboard.item">
+            <field name="board_id" ref="board_predefined_team_performance"/>
+            <field name="name">My Revenue</field>
+            <field name="item_type">kpi</field>
+            <field name="model_name">sale.order</field>
+            <field name="domain">[('state','in',['sale','done']),('user_id','=',%UID)]</field>
+            <field name="filter_date_field">date_order</field>
+            <field name="date_filter">month</field>
+            <field name="measure_field">amount_untaxed</field>
+            <field name="measure_operator">sum</field>
+            <field name="color_theme">purple</field>
+            <field name="icon">fa-user</field>
+            <field name="unit_type">monetary</field>
+            <field name="number_system">abbreviated</field>
+            <field name="grid_x">0</field><field name="grid_y">0</field>
+            <field name="grid_w">3</field><field name="grid_h">2</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="item_team_by_salesperson" model="dashboard.item">
+            <field name="board_id" ref="board_predefined_team_performance"/>
+            <field name="name">Revenue by Salesperson</field>
+            <field name="item_type">chart</field>
+            <field name="model_name">sale.order</field>
+            <field name="domain">[('state','in',['sale','done'])]</field>
+            <field name="filter_date_field">date_order</field>
+            <field name="date_filter">month</field>
+            <field name="measure_field">amount_untaxed</field>
+            <field name="measure_operator">sum</field>
+            <field name="group_by_field">user_id</field>
+            <field name="chart_type">bar</field>
+            <field name="chart_color_palette">blues</field>
+            <field name="record_limit">10</field>
+            <field name="grid_x">0</field><field name="grid_y">2</field>
+            <field name="grid_w">6</field><field name="grid_h">4</field>
+            <field name="sequence">2</field>
+        </record>
+
+        <record id="item_team_by_customer" model="dashboard.item">
+            <field name="board_id" ref="board_predefined_team_performance"/>
+            <field name="name">Revenue by Customer</field>
+            <field name="item_type">chart</field>
+            <field name="model_name">sale.order</field>
+            <field name="domain">[('state','in',['sale','done'])]</field>
+            <field name="filter_date_field">date_order</field>
+            <field name="date_filter">month</field>
+            <field name="measure_field">amount_untaxed</field>
+            <field name="measure_operator">sum</field>
+            <field name="group_by_field">partner_id</field>
+            <field name="chart_type">horizontalBar</field>
+            <field name="chart_color_palette">greens</field>
+            <field name="record_limit">10</field>
+            <field name="grid_x">6</field><field name="grid_y">2</field>
+            <field name="grid_w">6</field><field name="grid_h">4</field>
+            <field name="sequence">3</field>
+        </record>
+
+        <!-- =============================================================
+             Predefined Dashboard 3: Executive Summary
+             ============================================================= -->
+        <record id="board_predefined_executive" model="dashboard.board">
+            <field name="name">Executive Summary</field>
+            <field name="is_predefined">True</field>
+            <field name="theme">corporate</field>
+            <field name="sequence">3</field>
+            <field name="description">High-level executive KPIs across company.</field>
+            <field name="user_id" ref="base.user_admin"/>
+        </record>
+
+        <record id="item_exec_revenue_ytd" model="dashboard.item">
+            <field name="board_id" ref="board_predefined_executive"/>
+            <field name="name">Revenue YTD</field>
+            <field name="item_type">kpi</field>
+            <field name="model_name">sale.order</field>
+            <field name="domain">[('state','in',['sale','done'])]</field>
+            <field name="filter_date_field">date_order</field>
+            <field name="date_filter">year</field>
+            <field name="measure_field">amount_untaxed</field>
+            <field name="measure_operator">sum</field>
+            <field name="color_theme">primary</field>
+            <field name="icon">fa-trophy</field>
+            <field name="unit_type">monetary</field>
+            <field name="number_system">abbreviated</field>
+            <field name="compare_period">True</field>
+            <field name="grid_x">0</field><field name="grid_y">0</field>
+            <field name="grid_w">4</field><field name="grid_h">2</field>
+            <field name="sequence">1</field>
+        </record>
+
+        <record id="item_exec_todo" model="dashboard.item">
+            <field name="board_id" ref="board_predefined_executive"/>
+            <field name="name">Executive To-Do</field>
+            <field name="item_type">todo</field>
+            <field name="todo_items">[{"text": "Review Q1 performance report", "done": false}, {"text": "Approve Q2 sales targets", "done": false}, {"text": "Schedule team meeting", "done": false}]</field>
+            <field name="color_theme">warning</field>
+            <field name="icon">fa-check-square</field>
+            <field name="grid_x">8</field><field name="grid_y">0</field>
+            <field name="grid_w">4</field><field name="grid_h">4</field>
+            <field name="sequence">4</field>
+        </record>
+
+    </data>
+</odoo>

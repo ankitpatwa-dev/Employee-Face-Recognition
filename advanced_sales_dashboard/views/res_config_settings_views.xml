@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_sales_target" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.advanced.dashboard</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="10"/>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app string="Advanced Dashboard" name="advanced_sales_dashboard"
+                     groups="advanced_sales_dashboard.group_dashboard_user">
+
+                    <block title="Sales Target" name="advanced_dashboard_target_block">
+                        <setting id="monthly_sales_target_setting"
+                                 string="Monthly Sales Target"
+                                 help="Monthly revenue target shown on KPI and gauge tiles">
+                            <field name="monthly_sales_target"/>
+                        </setting>
+                    </block>
+
+                    <block title="Dashboard Defaults" name="advanced_dashboard_defaults_block">
+                        <setting id="dashboard_refresh_interval_setting"
+                                 string="Auto-Refresh Interval (seconds)"
+                                 help="Default polling interval for real-time dashboard updates">
+                            <field name="dashboard_refresh_interval"/>
+                        </setting>
+                        <setting id="dashboard_number_system_setting"
+                                 string="Default Number Format"
+                                 help="Default number formatting across all dashboard tiles">
+                            <field name="dashboard_number_system"/>
+                        </setting>
+                    </block>
+
+                    <block title="AI Integration" name="advanced_dashboard_ai_block"
+                           groups="advanced_sales_dashboard.group_dashboard_admin">
+                        <setting id="dashboard_ai_provider_setting"
+                                 string="AI Provider"
+                                 help="AI provider used for dashboard and insight generation">
+                            <field name="dashboard_ai_provider"/>
+                        </setting>
+                        <setting id="dashboard_ai_api_key_setting"
+                                 string="AI API Key"
+                                 help="Your Google Gemini or OpenAI API key (stored securely)">
+                            <field name="dashboard_ai_api_key" password="True"/>
+                        </setting>
+                    </block>
+
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<!-- =========================================================================
+     Main Application Template
+     ========================================================================= -->
+<t t-name="advanced_sales_dashboard.App" owl="1">
+    <div t-attf-class="advanced-dashboard-app o_action {{ themeClass }} {{ state.editMode ? 'edit-mode' : '' }}">
+
+        <!-- ── Sidebar ──────────────────────────────────────────────────── -->
+        <div t-attf-class="dash-sidebar {{ state.sidebarCollapsed ? 'collapsed' : '' }}">
+
+            <!-- Logo / toggle -->
+            <div class="sidebar-logo">
+                <i class="fa fa-dashboard logo-icon"/>
+                <span class="logo-text">Dashboards</span>
+                <button class="sidebar-btn ms-auto p-1" style="margin-left:auto"
+                        t-on-click="() => this.state.sidebarCollapsed = !this.state.sidebarCollapsed">
+                    <i t-attf-class="fa {{ state.sidebarCollapsed ? 'fa-chevron-right' : 'fa-chevron-left' }}"/>
+                </button>
+            </div>
+
+            <!-- Board list -->
+            <div class="sidebar-section-title">MY DASHBOARDS</div>
+            <div class="sidebar-board-list">
+                <t t-foreach="state.boards" t-as="board" t-key="board.id">
+                    <div t-attf-class="sidebar-board-item {{ state.activeBoardId === board.id ? 'active' : '' }}"
+                         t-on-click="() => this.selectBoard(board.id)">
+                        <i t-attf-class="board-icon fa {{ board.is_predefined ? 'fa-star' : 'fa-th-large' }}"/>
+                        <span class="board-name" t-esc="board.name"/>
+                        <span class="board-badge" t-esc="board.item_count"/>
+                    </div>
+                </t>
+                <t t-if="!state.boards.length">
+                    <div class="text-center py-3" style="color:rgba(255,255,255,.3);font-size:12px;">
+                        No dashboards yet
+                    </div>
+                </t>
+            </div>
+            <div class="sidebar-divider"/>
+
+            <!-- Global Controls -->
+            <div class="sidebar-section-title">GLOBAL CONTROLS</div>
+            <div class="sidebar-controls px-3 d-flex flex-column gap-3">
+                
+                <!-- Date Filter -->
+                <div class="sidebar-control-group">
+                    <label class="small fw-bold mb-1 d-block" style="color:var(--dash-sidebar-text);opacity:.7">TIME PERIOD</label>
+                    <DateRangeFilter
+                        value="state.globalDateFilter"
+                        dateStart="state.globalDateStart"
+                        dateEnd="state.globalDateEnd"
+                        onChange="onGlobalDateChange"/>
+                </div>
+
+                <!-- AI -->
+                <div class="sidebar-control-group">
+                    <button class="sidebar-btn ai-btn w-100" t-on-click="() => this.openAIDialog('dashboard')"
+                            title="Generate with AI">
+                        <i class="fa fa-magic"/>
+                        <span>AI Generate</span>
+                    </button>
+                </div>
+
+                <!-- Themes -->
+                <div class="sidebar-control-group">
+                    <label class="small fw-bold mb-1 d-block" style="color:var(--dash-sidebar-text);opacity:.7">SELECT THEME</label>
+                    <div class="theme-dots py-1">
+                        <t t-foreach="themes" t-as="theme" t-key="theme.id">
+                            <div t-attf-class="theme-dot {{ state.activeBoard?.theme === theme.id ? 'active' : '' }}"
+                                 t-att-style="`background:${theme.color}`"
+                                 t-att-title="theme.label"
+                                 t-on-click="() => this.setTheme(theme.id)"/>
+                        </t>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar actions -->
+            <div class="sidebar-actions">
+                <button class="sidebar-btn primary" t-on-click="createBoard">
+                    <i class="fa fa-plus"/>
+                    <span>New Dashboard</span>
+                </button>
+                <button class="sidebar-btn" t-on-click="importBoard">
+                    <i class="fa fa-upload"/>
+                    <span>Import</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ── Main Content ──────────────────────────────────────────────── -->
+        <div class="dash-main">
+
+            <!-- Header -->
+            <div class="dash-header">
+                <div class="dash-title" t-esc="state.activeBoard?.name || 'Advanced Dashboard'"/>
+
+                <div class="header-controls">
+                    <!-- Refresh indicator -->
+                    <t t-if="state.polling">
+                        <span title="Real-time updating" style="color:var(--dash-success);font-size:12px;">
+                            <i class="fa fa-circle"/> Live
+                        </span>
+                    </t>
+
+                    <button class="dash-btn" t-on-click="() => this.manualRefresh()" title="Refresh">
+                        <i t-attf-class="fa fa-refresh {{ state.loading ? 'fa-spin' : '' }}"/>
+                    </button>
+
+                    <button class="dash-btn" t-on-click="toggleAutoRefresh"
+                            t-att-class="state.activeBoard?.auto_refresh ? 'active' : ''"
+                            title="Toggle auto-refresh">
+                        <i class="fa fa-clock-o"/> Auto
+                    </button>
+
+                    <!-- Edit mode -->
+                    <button class="dash-btn" t-on-click="toggleEditMode"
+                            t-att-class="state.editMode ? 'active' : ''"
+                            title="Toggle edit mode">
+                        <i class="fa fa-pencil"/> Edit
+                    </button>
+
+                    <!-- Add tile (only in edit mode) -->
+                    <t t-if="state.editMode">
+                        <button class="dash-btn" t-on-click="openNewItemConfigurator" title="Add tile">
+                            <i class="fa fa-plus"/> Add Tile
+                        </button>
+                    </t>
+
+                    <!-- Export / Duplicate / Delete -->
+                    <t t-if="state.activeBoardId">
+                        <button class="dash-btn" t-on-click="exportBoard" title="Export JSON">
+                            <i class="fa fa-download"/>
+                        </button>
+                        <button class="dash-btn" t-on-click="duplicateBoard" title="Duplicate dashboard">
+                            <i class="fa fa-copy"/>
+                        </button>
+                        <button class="dash-btn danger" t-on-click="deleteBoard" title="Delete dashboard">
+                            <i class="fa fa-trash"/>
+                        </button>
+                    </t>
+                </div>
+            </div>
+
+            <!-- Error state -->
+            <t t-if="state.hasError">
+                <div class="m-4 p-4 rounded" style="background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;">
+                    <h5><i class="fa fa-exclamation-triangle me-2"/> Error</h5>
+                    <p t-esc="state.errorMessage"/>
+                    <button class="dash-btn" t-on-click="retryLoad">Retry</button>
+                </div>
+            </t>
+
+            <!-- Full loading state -->
+            <t t-elif="state.loading and !state.activeBoard">
+                <div class="dash-empty" style="height:80vh;">
+                    <div class="spinner" style="width:40px;height:40px;border-width:4px;margin-bottom:12px;"/>
+                    <span>Loading Dashboards...</span>
+                </div>
+            </t>
+
+            <!-- Empty: no boards -->
+            <t t-elif="!state.activeBoard and !state.loading">
+                <div class="dash-empty" style="height:80vh;">
+                    <i class="fa fa-dashboard"/>
+                    <div>
+                        <strong>No dashboards yet</strong>
+                        <p style="margin-top:4px;font-size:12px;">Click "New Dashboard" to create one, or use AI Generate.</p>
+                    </div>
+                    <button class="dash-btn ai-btn" t-on-click="() => this.openAIDialog('dashboard')">
+                        <i class="fa fa-magic"/> Generate with AI
+                    </button>
+                </div>
+            </t>
+
+            <!-- Dashboard content -->
+            <t t-elif="state.activeBoard">
+                <div class="dash-grid-area">
+                    <DashboardGrid
+                        board="state.activeBoard"
+                        editMode="state.editMode"
+                        globalDateFilter="state.globalDateFilter"
+                        globalDateStart="state.globalDateStart"
+                        globalDateEnd="state.globalDateEnd"
+                        refreshTrigger="state.refreshTrigger"
+                        onEdit="openConfigurator"
+                        onDelete="onItemDeleted"/>
+                </div>
+            </t>
+        </div>
+
+        <!-- ── Item Configurator Panel ──────────────────────────────────── -->
+        <ItemConfigurator
+            open="state.configuratorOpen"
+            boardId="state.activeBoardId"
+            itemId="state.configuratorItemId"
+            onSave="onItemSaved"
+            onClose="closeConfigurator"
+            onDelete="onItemDeleted"/>
+
+        <!-- ── AI Dialog ─────────────────────────────────────────────────── -->
+        <AIDialog
+            open="state.aiDialogOpen"
+            mode="state.aiDialogMode"
+            boardId="state.activeBoardId"
+            onClose="closeAIDialog"
+            onApply="onAIApply"/>
+
+    </div>
+</t>
+
+<!-- =========================================================================
+     Grid Template
+     ========================================================================= -->
+<t t-name="advanced_sales_dashboard.Grid" owl="1">
+    <div class="grid-stack" t-ref="gridContainer">
+        <t t-foreach="props.board.item_ids" t-as="item" t-key="item.id">
+            <div class="grid-stack-item"
+                 t-att-gs-x="item.grid_x"
+                 t-att-gs-y="item.grid_y"
+                 t-att-gs-w="item.grid_w"
+                 t-att-gs-h="item.grid_h"
+                 t-att-data-item-id="item.id">
+                <div class="grid-stack-item-content">
+                    <DashboardItem
+                        config="item"
+                        editMode="props.editMode"
+                        globalDateFilter="props.globalDateFilter"
+                        globalDateStart="props.globalDateStart"
+                        globalDateEnd="props.globalDateEnd"
+                        refreshTrigger="props.refreshTrigger"
+                        onEdit="props.onEdit"
+                        onDelete="props.onDelete"/>
+                </div>
+            </div>
+        </t>
+        <t t-if="!props.board.item_ids or !props.board.item_ids.length">
+            <div class="dash-empty" style="height:60vh;grid-column:1/-1;">
+                <i class="fa fa-th-large"/>
+                <strong>This dashboard is empty</strong>
+                <p style="font-size:12px;">Switch to Edit mode and click "+ Add Tile" to get started.</p>
+            </div>
+        </t>
+    </div>
+</t>
+
+<!-- =========================================================================
+     Date Range Filter Template
+     ========================================================================= -->
+<t t-name="advanced_sales_dashboard.DateRangeFilter" owl="1">
+    <div class="d-flex align-items-center gap-2">
+        <select class="dash-select" t-model="state.filter" t-on-change="onFilterChange">
+            <t t-foreach="options" t-as="opt" t-key="opt.value">
+                <option t-att-value="opt.value" t-esc="opt.label"/>
+            </t>
+        </select>
+        <t t-if="isCustom">
+            <input type="date" class="dash-select" t-att-value="state.start" t-on-change="onStartChange"/>
+            <span style="color:var(--dash-muted)">–</span>
+            <input type="date" class="dash-select" t-att-value="state.end" t-on-change="onEndChange"/>
+        </t>
+    </div>
+</t>
+
+</templates>

@@ -1,0 +1,6 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_advanced_sales_dashboard_user,advanced.sales.dashboard.user,model_advanced_sales_dashboard,base.group_user,1,0,0,0
+access_dashboard_board_user,dashboard.board.user,model_dashboard_board,advanced_sales_dashboard.group_dashboard_user,1,1,1,0
+access_dashboard_board_manager,dashboard.board.manager,model_dashboard_board,advanced_sales_dashboard.group_dashboard_manager,1,1,1,1
+access_dashboard_item_user,dashboard.item.user,model_dashboard_item,advanced_sales_dashboard.group_dashboard_user,1,1,1,0
+access_dashboard_item_manager,dashboard.item.manager,model_dashboard_item,advanced_sales_dashboard.group_dashboard_manager,1,1,1,1

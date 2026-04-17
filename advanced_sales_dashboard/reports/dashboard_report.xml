@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- QWeb template for PDF report -->
+    <template id="report_advanced_sales_dashboard">
+        <t t-call="web.html_container">
+            <t t-call="web.internal_layout">
+                <div class="page">
+                    <h2 class="text-center text-primary mt-4">Weekly Sales Dashboard Report</h2>
+                    <h4 class="text-center text-muted"><t t-esc="docs['date_range']"/></h4>
+                    
+                    <div class="row mt-5">
+                        <div class="col-6">
+                            <strong>Total Revenue: </strong> <span t-esc="docs['data']['kpi']['currency_symbol']"/><span t-esc="docs['data']['kpi']['revenue']"/>
+                            <br/>
+                            <strong>Growth: </strong> <span t-esc="docs['data']['kpi']['revenue_growth']"/>%
+                        </div>
+                        <div class="col-6">
+                            <strong>Total Orders: </strong> <span t-esc="docs['data']['kpi']['orders']"/>
+                            <br/>
+                            <strong>Growth: </strong> <span t-esc="docs['data']['kpi']['orders_growth']"/>%
+                        </div>
+                    </div>
+                    
+                    <h3 class="mt-5">AI Insight Summary</h3>
+                    <p class="fst-italic"><t t-esc="docs['data']['insight_message']"/></p>
+
+                    <t t-if="docs['data']['top_performers']['salespersons']">
+                        <h3 class="mt-5">Top Salespersons</h3>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="docs['data']['top_performers']['salespersons']" t-as="sp">
+                                    <td><t t-esc="sp['name']"/></td>
+                                    <td><t t-esc="sp['revenue']"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </template>
+    
+    <record id="action_report_advanced_sales_dashboard" model="ir.actions.report">
+        <field name="name">Weekly Sales Report</field>
+        <field name="model">res.company</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">advanced_sales_dashboard.report_advanced_sales_dashboard</field>
+        <field name="report_file">advanced_sales_dashboard.report_advanced_sales_dashboard</field>
+    </record>
+
+</odoo>

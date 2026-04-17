@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+<!-- =========================================================================
+     Item Configurator — slide-in panel
+     ========================================================================= -->
+<t t-name="advanced_sales_dashboard.ItemConfigurator" owl="1">
+    <div t-attf-class="item-config-panel {{ props.open ? 'open' : '' }}">
+
+        <div class="config-header">
+            <h4 t-esc="isNew ? 'Add New Tile' : 'Configure Tile'"/>
+            <button t-on-click="close"><i class="fa fa-times"/></button>
+        </div>
+
+        <div class="config-body">
+
+            <!-- ── Basic ──────────────────────────────────────────────── -->
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" t-att-value="state.form.name"
+                       t-on-input="(e) => this.set('name', e)"/>
+            </div>
+
+            <div class="form-group">
+                <label>Item Type</label>
+                <select t-on-change="(e) => this.set('item_type', e)">
+                    <t t-foreach="itemTypes" t-as="t" t-key="t.value">
+                        <option t-att-value="t.value"
+                                t-att-selected="state.form.item_type === t.value"
+                                t-esc="t.label"/>
+                    </t>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Icon (Font Awesome class)</label>
+                <input type="text" t-att-value="state.form.icon"
+                       t-on-input="(e) => this.set('icon', e)"
+                       placeholder="e.g. fa-dollar"/>
+            </div>
+
+            <!-- Accent Color swatches -->
+            <div class="form-group">
+                <label>Accent Color</label>
+                <div class="color-swatches">
+                    <t t-foreach="colors" t-as="c" t-key="c.value">
+                        <div class="swatch"
+                             t-att-style="`background:${c.hex}`"
+                             t-attf-class="swatch {{ state.form.color_theme === c.value ? 'active' : '' }}"
+                             t-att-title="c.value"
+                             t-on-click="() => this.setColor(c.value)"/>
+                    </t>
+                </div>
+            </div>
+
+            <!-- ── Data Source (not for todo/note) ───────────────────── -->
+            <t t-if="isData">
+                <div class="config-section-title">Data Source</div>
+
+                <div class="form-group">
+                    <label>Odoo Model</label>
+                    <input type="text" t-att-value="state.form.model_name"
+                           t-on-change="onModelChange"
+                           placeholder="e.g. sale.order"/>
+                </div>
+
+                <div class="form-group">
+                    <label>Filter Domain</label>
+                    <input type="text" t-att-value="state.form.domain"
+                           t-on-input="(e) => this.set('domain', e)"
+                           placeholder="[('state','=','sale')]"/>
+                    <small style="color:var(--dash-muted);font-size:10px;">
+                        Use %UID for current user, %MYCOMPANY for current company
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label>Date Field</label>
+                    <input type="text" t-att-value="state.form.filter_date_field"
+                           t-on-input="(e) => this.set('filter_date_field', e)"
+                           placeholder="date_order"/>
+                </div>
+
+                <!-- ── Date Filter ────────────────────────────────── -->
+                <div class="config-section-title">Date Filter</div>
+
+                <div class="form-group">
+                    <label>Period</label>
+                    <select t-on-change="(e) => this.set('date_filter', e)">
+                        <t t-foreach="dateFilters" t-as="df" t-key="df.value">
+                            <option t-att-value="df.value"
+                                    t-att-selected="state.form.date_filter === df.value"
+                                    t-esc="df.label"/>
+                        </t>
+                    </select>
+                </div>
+
+                <t t-if="isCustomDate">
+                    <div class="form-group">
+                        <label>From</label>
+                        <input type="date" t-att-value="state.form.date_start"
+                               t-on-change="(e) => this.set('date_start', e)"/>
+                    </div>
+                    <div class="form-group">
+                        <label>To</label>
+                        <input type="date" t-att-value="state.form.date_end"
+                               t-on-change="(e) => this.set('date_end', e)"/>
+                    </div>
+                </t>
+
+                <!-- ── Aggregation ────────────────────────────────── -->
+                <div class="config-section-title">Aggregation</div>
+
+                <div class="form-group">
+                    <label>Measure Field</label>
+                    <input type="text" t-att-value="state.form.measure_field"
+                           t-on-input="(e) => this.set('measure_field', e)"
+                           placeholder="amount_untaxed"/>
+                </div>
+
+                <div class="form-group">
+                    <label>Function</label>
+                    <select t-on-change="(e) => this.set('measure_operator', e)">
+                        <t t-foreach="measureOps" t-as="mo" t-key="mo.value">
+                            <option t-att-value="mo.value"
+                                    t-att-selected="state.form.measure_operator === mo.value"
+                                    t-esc="mo.label"/>
+                        </t>
+                    </select>
+                </div>
+
+                <t t-if="isChart">
+                    <div class="form-group">
+                        <label>Group By Field</label>
+                        <input type="text" t-att-value="state.form.group_by_field"
+                               t-on-input="(e) => this.set('group_by_field', e)"
+                               placeholder="user_id or date_order:month"/>
+                    </div>
+                </t>
+
+                <div class="form-group">
+                    <label>Sort By</label>
+                    <input type="text" t-att-value="state.form.sort_by"
+                           t-on-input="(e) => this.set('sort_by', e)"
+                           placeholder="amount_untaxed"/>
+                </div>
+
+                <div class="form-group">
+                    <label>Sort Order</label>
+                    <select t-on-change="(e) => this.set('sort_order', e)">
+                        <option value="desc" t-att-selected="state.form.sort_order === 'desc'">Descending</option>
+                        <option value="asc"  t-att-selected="state.form.sort_order === 'asc'">Ascending</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Record Limit</label>
+                    <input type="number" min="1" max="1000" t-att-value="state.form.record_limit"
+                           t-on-change="(e) => this.setNum('record_limit', e)"/>
+                </div>
+
+                <t t-if="isKPIOrGauge">
+                    <div class="form-group">
+                        <label style="display:flex;align-items:center;gap:8px;">
+                            <input type="checkbox" t-att-checked="state.form.compare_period"
+                                   t-on-change="(e) => this.setCheck('compare_period', e)"/>
+                            Compare with Previous Period
+                        </label>
+                    </div>
+                </t>
+            </t>
+
+            <!-- ── Chart Settings ─────────────────────────────────────── -->
+            <t t-if="isChart">
+                <div class="config-section-title">Chart Settings</div>
+
+                <div class="form-group">
+                    <label>Chart Type</label>
+                    <select t-on-change="(e) => this.set('chart_type', e)">
+                        <t t-foreach="chartTypes" t-as="ct" t-key="ct.value">
+                            <option t-att-value="ct.value"
+                                    t-att-selected="state.form.chart_type === ct.value"
+                                    t-esc="ct.label"/>
+                        </t>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Color Palette</label>
+                    <select t-on-change="(e) => this.set('chart_color_palette', e)">
+                        <t t-foreach="palettes" t-as="p" t-key="p.value">
+                            <option t-att-value="p.value"
+                                    t-att-selected="state.form.chart_color_palette === p.value"
+                                    t-esc="p.label"/>
+                        </t>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label style="display:flex;align-items:center;gap:8px;">
+                        <input type="checkbox" t-att-checked="state.form.show_data_values"
+                               t-on-change="(e) => this.setCheck('show_data_values', e)"/>
+                        Show Data Labels
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display:flex;align-items:center;gap:8px;">
+                        <input type="checkbox" t-att-checked="state.form.show_legend"
+                               t-on-change="(e) => this.setCheck('show_legend', e)"/>
+                        Show Legend
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label style="display:flex;align-items:center;gap:8px;">
+                        <input type="checkbox" t-att-checked="state.form.fill_area"
+                               t-on-change="(e) => this.setCheck('fill_area', e)"/>
+                        Fill Area (Line chart)
+                    </label>
+                </div>
+            </t>
+
+            <!-- ── Units & Display ────────────────────────────────────── -->
+            <t t-if="isData">
+                <div class="config-section-title">Display</div>
+
+                <div class="form-group">
+                    <label>Unit Type</label>
+                    <select t-on-change="(e) => this.set('unit_type', e)">
+                        <t t-foreach="unitTypes" t-as="ut" t-key="ut.value">
+                            <option t-att-value="ut.value"
+                                    t-att-selected="state.form.unit_type === ut.value"
+                                    t-esc="ut.label"/>
+                        </t>
+                    </select>
+                </div>
+
+                <t t-if="isCustomUnit">
+                    <div class="form-group">
+                        <label>Custom Unit</label>
+                        <input type="text" t-att-value="state.form.custom_unit"
+                               t-on-input="(e) => this.set('custom_unit', e)"
+                               placeholder="e.g. kg, hrs"/>
+                    </div>
+                </t>
+
+                <t t-if="isMonetary">
+                    <div class="form-group">
+                        <label>Display Currency</label>
+                        <select t-on-change="(e) => this.set('currency_id', e)">
+                            <option value="">Company Default</option>
+                            <t t-foreach="state.currencies" t-as="cur" t-key="cur.id">
+                                <option t-att-value="cur.id"
+                                        t-att-selected="state.form.currency_id == cur.id">
+                                    <t t-esc="`${cur.name} (${cur.symbol})`"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+                </t>
+
+                <div class="form-group">
+                    <label>Number Format</label>
+                    <select t-on-change="(e) => this.set('number_system', e)">
+                        <t t-foreach="numberSystems" t-as="ns" t-key="ns.value">
+                            <option t-att-value="ns.value"
+                                    t-att-selected="state.form.number_system === ns.value"
+                                    t-esc="ns.label"/>
+                        </t>
+                    </select>
+                </div>
+            </t>
+
+            <!-- ── Target ─────────────────────────────────────────────── -->
+            <t t-if="isKPIOrGauge">
+                <div class="config-section-title">Target</div>
+
+                <div class="form-group">
+                    <label style="display:flex;align-items:center;gap:8px;">
+                        <input type="checkbox" t-att-checked="state.form.has_target"
+                               t-on-change="(e) => this.setCheck('has_target', e)"/>
+                        Enable Target
+                    </label>
+                </div>
+
+                <t t-if="state.form.has_target">
+                    <div class="form-group">
+                        <label>Target Value</label>
+                        <input type="number" t-att-value="state.form.target_value"
+                               t-on-change="(e) => this.setNum('target_value', e)"/>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Label</label>
+                        <input type="text" t-att-value="state.form.target_label"
+                               t-on-input="(e) => this.set('target_label', e)"/>
+                    </div>
+                </t>
+            </t>
+
+            <!-- ── List Options ───────────────────────────────────────── -->
+            <t t-if="state.form.item_type === 'list'">
+                <div class="config-section-title">List Options</div>
+
+                <div class="form-group">
+                    <label>List Style</label>
+                    <select t-on-change="(e) => this.set('list_style', e)">
+                        <option value="compact" t-att-selected="state.form.list_style === 'compact'">Compact Table</option>
+                        <option value="card"    t-att-selected="state.form.list_style === 'card'">Card List</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Visible Fields (JSON array)</label>
+                    <input type="text" t-att-value="state.form.list_fields"
+                           t-on-input="(e) => this.set('list_fields', e)"
+                           placeholder='["name","partner_id","amount_total"]'/>
+                </div>
+            </t>
+
+            <!-- ── Note ──────────────────────────────────────────────── -->
+            <t t-if="state.form.item_type === 'note'">
+                <div class="config-section-title">Note Settings</div>
+                <div class="form-group">
+                    <label>Background Color</label>
+                    <input type="color" t-att-value="state.form.note_bg_color"
+                           t-on-change="(e) => this.set('note_bg_color', e)"
+                           style="width:60px;height:36px;padding:2px;border-radius:8px;cursor:pointer;"/>
+                </div>
+            </t>
+
+            <!-- ── AI Keywords ────────────────────────────────────────── -->
+            <div class="config-section-title">AI</div>
+            <div class="form-group">
+                <label>AI Keywords (for AI-assisted config)</label>
+                <input type="text" t-att-value="state.form.ai_keywords"
+                       t-on-input="(e) => this.set('ai_keywords', e)"
+                       placeholder="revenue, monthly, growth"/>
+            </div>
+
+            <!-- ── Grid Size ──────────────────────────────────────────── -->
+            <div class="config-section-title">Grid Size</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <div class="form-group">
+                    <label>Width (cols)</label>
+                    <input type="number" min="1" max="12" t-att-value="state.form.grid_w"
+                           t-on-change="(e) => this.setNum('grid_w', e)"/>
+                </div>
+                <div class="form-group">
+                    <label>Height (rows)</label>
+                    <input type="number" min="1" max="20" t-att-value="state.form.grid_h"
+                           t-on-change="(e) => this.setNum('grid_h', e)"/>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="config-footer">
+            <t t-if="!isNew">
+                <button class="btn-cancel" t-on-click="deleteItem"
+                        style="color:var(--dash-danger);border-color:var(--dash-danger);">
+                    <i class="fa fa-trash me-1"/> Delete
+                </button>
+            </t>
+            <button class="btn-cancel" t-on-click="close">Cancel</button>
+            <button class="btn-save" t-on-click="save" t-att-disabled="state.saving">
+                <t t-if="state.saving"><i class="fa fa-spinner fa-spin me-1"/> Saving…</t>
+                <t t-else=""><i class="fa fa-check me-1"/> Save Tile</t>
+            </button>
+        </div>
+
+    </div>
+</t>
+
+</templates>
